@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 import json
-
+import codecs
 # pipeline front-end
 
 # diccionario pronunciacion de letras aisladas
@@ -19,18 +20,37 @@ def normalizeNumbers(number_word):
 def getLTS(lts_file):
     lts_dict = {}
     digraphs = []
-    with open(lts_file) as data_file:
+    with codecs.open(lts_file, encoding='utf-8') as data_file:
         for line in data_file:
-            (key, val) = line.split()
-            lts_dict[key] = val
+            k1, k2, val = line.split()
+            lts_dict[(k1, k2)] = val
 
-    [digraphs.append(n[0]) for n in lts_dict.values() if len(n) > 1 and n[0] not in digraphs]
+    [digraphs.append(n[0]) for n in lts_dict.keys() if len(n[0]) > 1 and n[0] not in digraphs]
 
     return lts_dict, digraphs
 
 # funcion para hacer transcripcion fonetica
-# input: palabra, grafemario
+# input: palabra, grafemario, lista de digrafos
 # output: transcripcion fonetica de una palabra
+def transcribe(word, graph_inv, lts_dict, digraph_list):
+    phones = []
+    flag = False
+    for n in range(0, len(word)):
+        if n != len(word)-1:
+            if flag == True:
+                flag = False
+            elif word[n]+word[n+1] not in digraph_list and flag == False:
+                phones.append(lts_dict[(word[n],graph_inv)])
+            else:
+                phones.append(lts_dict[(word[n]+word[n+1], graph_inv)])
+                flag = True
+        else:
+            phones.append(lts_dict[(word[n],graph_inv)])
+    print phones
+
+lts_dict, digraphs = getLTS('LTS')
+print lts_dict, digraphs
+transcribe(u'trawa', 'unificado', lts_dict, digraphs)
 
 # reglas de silibifacion
 # input: archivo de texto con el siguiente formato
